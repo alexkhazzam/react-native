@@ -7,13 +7,16 @@ import {
   TouchableOpacity,
   FlatList,
   Text,
+  ScrollView,
+  Image,
 } from 'react-native';
 
 import LoadingSpinner from './components/LoadingSpinner';
 
 export default function App() {
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
-  const [searchText, setSearchText] = useState(false);
+  const [searchText, setSearchText] = useState(undefined);
+  const [displayName, setDisplayName] = useState('');
   const [requestData, setRequestData] = useState([]);
   const [requestDataDisplayed, setRequestDataDisplayed] = useState(false);
 
@@ -49,12 +52,17 @@ export default function App() {
     const res = data.results;
     for (let i = 0; i < res.length; i++) {
       for (let k = 0; k < res[i].addresses.length; k++) {
+        res[i].addresses[k].key = Math.random();
         setRequestData((data) => [...data, res[i].addresses[k]]);
       }
     }
 
-    setRequestDataDisplayed(true);
+    const enteredName = searchText;
+
+    setSearchText(undefined);
+    setDisplayName(enteredName);
     setShowLoadingSpinner(false);
+    setRequestDataDisplayed(true);
   };
 
   return (
@@ -71,12 +79,32 @@ export default function App() {
         </TouchableOpacity>
         {requestDataDisplayed ? (
           <Text>
-            {requestData.length} results found for "{searchText}"
+            {requestData.length} results found for "{displayName}"
           </Text>
         ) : null}
       </View>
       <LoadingSpinner showLoadingSpinner={showLoadingSpinner} />
-      <View></View>
+      <ScrollView>
+        {requestData.map((data) => (
+          <View styles={styles.resultsWrapper} key={data.key}>
+            <View style={styles.resultWrapper}>
+              <View style={styles.result}>
+                <Image source={require('./assets/images/doctors-bag.png')} />
+                <Text>address_1: {data.address_1}</Text>
+                <Text>address_2: {data.address_2}</Text>
+                <Text>address_purpose: {data.address_purpose}</Text>
+                <Text>address_type:{data.address_type}</Text>
+                <Text>city: {data.city}</Text>
+                <Text>country_code: {data.country_code}</Text>
+                <Text>fax_number: {data.fax_number}</Text>
+                <Text>postal_code: {data.postal_code}</Text>
+                <Text>state: {data.state}</Text>
+                <Text>telephone_number: {data.telephone_number}</Text>
+              </View>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -91,5 +119,14 @@ const styles = StyleSheet.create({
   },
   textInput: {
     textAlign: 'center',
+  },
+  resultWrapper: {
+    alignItems: 'center',
+  },
+  result: {
+    margin: 15,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'grey',
   },
 });
