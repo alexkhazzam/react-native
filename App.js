@@ -6,14 +6,16 @@ import {
   Button,
   TouchableOpacity,
   FlatList,
+  Text,
 } from 'react-native';
 
 import LoadingSpinner from './components/LoadingSpinner';
 
 export default function App() {
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
-  const [searchText, setSearchText] = useState(null);
+  const [searchText, setSearchText] = useState(false);
   const [requestData, setRequestData] = useState([]);
+  const [requestDataDisplayed, setRequestDataDisplayed] = useState(false);
 
   const errorHandler = (e) => {
     setShowLoadingSpinner(false);
@@ -21,16 +23,18 @@ export default function App() {
   };
 
   const searchInputHandler = (userInput) => {
+    setRequestDataDisplayed(false);
     if (userInput !== '' && userInput) {
-      setSearchText(text);
+      setSearchText(userInput);
     }
   };
 
   const requestHandler = async () => {
     setShowLoadingSpinner(!showLoadingSpinner);
+    setRequestData([]);
 
     const result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${searchText}&city=&lim
-    it=20&version=2.1`).catch((e) => {
+    it=${20}&version=${2.1}`).catch((e) => {
       return errorHandler(e);
     });
 
@@ -38,28 +42,42 @@ export default function App() {
       return errorHandler(e);
     });
 
-    setRequestData(JSON.parse(resultData));
-    setShowLoadingSpinner(false);
-    setSearchText(null);
+    requestDataHandler(resultData);
+  };
 
-    console.log(requestData);
+  const requestDataHandler = (data) => {
+    const d = [];
+    const res = data.results;
+    for (let i = 0; i < res.length; i++) {
+      for (let k = 0; k < res[i].addresses.length; k++) {
+        setRequestData((data) => [...data, res[i].addresses[k]]);
+      }
+    }
+
+    setRequestDataDisplayed(true);
+    setShowLoadingSpinner(false);
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerWrapper}>
+      <View>
         <TextInput
+          style={styles.textInput}
           placeholder="Enter Name Here"
           onChangeText={searchInputHandler}
+          value={requestDataDisplayed ? '' : null}
         ></TextInput>
         <TouchableOpacity>
           <Button title="Search" onPress={requestHandler} />
         </TouchableOpacity>
+        {requestDataDisplayed ? (
+          <Text>
+            {requestData.length} results found for "{searchText}"
+          </Text>
+        ) : null}
       </View>
-      <LoadingIcon showLoadingSpinner={showLoadingSpinner} />
-      <View>
-        <FlatList />
-      </View>
+      <LoadingSpinner showLoadingSpinner={showLoadingSpinner} />
+      <View></View>
     </View>
   );
 }
@@ -71,5 +89,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 150,
+  },
+  textInput: {
+    textAlign: 'center',
   },
 });
