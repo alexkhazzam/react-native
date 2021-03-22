@@ -46,7 +46,6 @@ export default function App() {
   };
 
   const requestDataHandler = (data) => {
-    const d = [];
     const res = data.results;
     for (let i = 0; i < res.length; i++) {
       for (let k = 0; k < res[i].addresses.length; k++) {
