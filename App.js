@@ -29,7 +29,7 @@ export default function App() {
   const requestHandler = async () => {
     setShowLoadingSpinner(!showLoadingSpinner);
 
-    const result = await fetch(`ttps://npiregistry.cms.hhs.gov/api/?first_name=${searchText}&city=&lim
+    const result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${searchText}&city=&lim
     it=20&version=2.1`).catch((e) => {
       return errorHandler(e);
     });
