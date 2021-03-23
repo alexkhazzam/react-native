@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   FlatList,
   Text,
-  ScrollView,
+  Modal,
   Image,
+  TouchableHighlight,
 } from 'react-native';
 
 import LoadingSpinner from './components/LoadingSpinner';
@@ -16,7 +17,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 export default function App() {
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
   const [searchText, setSearchText] = useState(undefined);
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState(undefined);
   const [requestData, setRequestData] = useState([]);
   const [requestDataDisplayed, setRequestDataDisplayed] = useState(false);
 
@@ -27,6 +28,7 @@ export default function App() {
 
   const searchInputHandler = (userInput) => {
     setRequestDataDisplayed(false);
+
     if (userInput !== '' && userInput) {
       setSearchText(userInput);
     }
@@ -52,8 +54,10 @@ export default function App() {
     const res = data.results;
     for (let i = 0; i < res.length; i++) {
       for (let k = 0; k < res[i].addresses.length; k++) {
-        res[i].addresses[k].key = Math.random();
-        setRequestData((data) => [...data, res[i].addresses[k]]);
+        setRequestData((data) => [
+          ...data,
+          { key: Math.random().toString(), person: res[i].addresses[k] },
+        ]);
       }
     }
 
@@ -63,6 +67,10 @@ export default function App() {
     setDisplayName(enteredName);
     setShowLoadingSpinner(false);
     setRequestDataDisplayed(true);
+  };
+
+  const closeModal = () => {
+    setRequestDataDisplayed(false);
   };
 
   return (
@@ -77,34 +85,48 @@ export default function App() {
         <TouchableOpacity>
           <Button title="Search" onPress={requestHandler} />
         </TouchableOpacity>
-        {requestDataDisplayed ? (
-          <Text>
-            {requestData.length} results found for "{displayName}"
-          </Text>
-        ) : null}
       </View>
       <LoadingSpinner showLoadingSpinner={showLoadingSpinner} />
-      <ScrollView>
-        {requestData.map((data) => (
-          <View styles={styles.resultsWrapper} key={data.key}>
-            <View style={styles.resultWrapper}>
+      <Modal animationType={'slide'} visible={requestDataDisplayed}>
+        <View style={styles.goBackWrapper}>
+          <TouchableHighlight onPress={closeModal}>
+            <View>
+              <Image
+                source={require('./assets/images/left-arrow.png')}
+                style={styles.goBack}
+              />
+              <Text>Go Back</Text>
+            </View>
+          </TouchableHighlight>
+          {requestDataDisplayed ? (
+            <Text style={styles.resultInformation}>
+              {requestData.length} results found for "{displayName}"
+            </Text>
+          ) : null}
+        </View>
+        <View style={styles.resultWrapper}>
+          <FlatList
+            data={requestData}
+            renderItem={(data) => (
               <View style={styles.result}>
                 <Image source={require('./assets/images/doctors-bag.png')} />
-                <Text>address_1: {data.address_1}</Text>
-                <Text>address_2: {data.address_2}</Text>
-                <Text>address_purpose: {data.address_purpose}</Text>
-                <Text>address_type:{data.address_type}</Text>
-                <Text>city: {data.city}</Text>
-                <Text>country_code: {data.country_code}</Text>
-                <Text>fax_number: {data.fax_number}</Text>
-                <Text>postal_code: {data.postal_code}</Text>
-                <Text>state: {data.state}</Text>
-                <Text>telephone_number: {data.telephone_number}</Text>
+                <Text>address_1: {data.item.person.address_1}</Text>
+                <Text>address_2: {data.item.person.address_2}</Text>
+                <Text>address_purpose: {data.item.person.address_purpose}</Text>
+                <Text>address_type:{data.item.person.address_type}</Text>
+                <Text>city: {data.item.person.city}</Text>
+                <Text>country_code: {data.item.person.country_code}</Text>
+                <Text>fax_number: {data.item.person.fax_number}</Text>
+                <Text>postal_code: {data.item.person.postal_code}</Text>
+                <Text>state: {data.item.person.state}</Text>
+                <Text>
+                  telephone_number: {data.item.person.telephone_number}
+                </Text>
               </View>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+            )}
+          />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -128,5 +150,20 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: 'grey',
+  },
+  goBackWrapper: {
+    marginLeft: 30,
+    marginTop: 45,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  resultInformation: {
+    color: 'navy',
+    marginLeft: 10,
+  },
+  goBack: {
+    width: 45,
+    height: 45,
+    marginRight: 10,
   },
 });
