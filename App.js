@@ -19,7 +19,7 @@ export default function App() {
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
   const [isRequestDataDisplayed, setIsRequestDataDisplayed] = useState(false);
   const [searchTextPlaceholder, setSearchTextPlaceholder] = useState(undefined);
-  const [searchText, setSearchText] = useState(undefined);
+  const [SEARCHTEXT, SETSEARCHTEXT] = useState(undefined);
   const [requestData, setRequestData] = useState([]);
 
   const errorHandler = (e) => {
@@ -39,7 +39,7 @@ export default function App() {
     setShowLoadingSpinner(!showLoadingSpinner);
     setRequestData([]);
 
-    const result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${searchText}&city=&lim
+    const result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${SEARCHTEXT}&city=&lim
     it=${20}&version=${2.1}`).catch((e) => {
       return errorHandler(e);
     });
@@ -62,7 +62,7 @@ export default function App() {
       }
     }
 
-    const enteredName = searchText;
+    const enteredName = SEARCHTEXT;
 
     setSearchTextHelper(undefined);
     setSearchTextPlaceholder(enteredName);
@@ -75,7 +75,7 @@ export default function App() {
   };
 
   const setSearchTextHelper = (input) => {
-    setSearchText(input);
+    SETSEARCHTEXT(input);
   };
 
   return (
@@ -105,9 +105,12 @@ export default function App() {
           {isRequestDataDisplayed ? (
             <Text>
               <Text style={styles.requestDataLength}>
-                {requestData.length}&nbsp;
+                {requestData.length === 0 ? 'No' : requestData.length}
               </Text>
-              results found for "{searchTextPlaceholder}"
+              &nbsp;
+              {requestData.length === 0
+                ? 'Results Found!'
+                : `Results Found For "${searchTextPlaceholder}"!`}
             </Text>
           ) : null}
         </View>
