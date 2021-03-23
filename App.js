@@ -17,8 +17,8 @@ import Person from './components/Person';
 
 export default function App() {
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
-  const [requestDataDisplayed, setRequestDataDisplayed] = useState(false);
-  const [displayName, setDisplayName] = useState(undefined);
+  const [isRequestDataDisplayed, setIsRequestDataDisplayed] = useState(false);
+  const [searchTextPlaceholder, setSearchTextPlaceholder] = useState(undefined);
   const [searchText, setSearchText] = useState(undefined);
   const [requestData, setRequestData] = useState([]);
 
@@ -28,7 +28,7 @@ export default function App() {
   };
 
   const searchInputHandler = (userInput) => {
-    setRequestDataDisplayed(false);
+    setIsRequestDataDisplayed(false);
 
     if (userInput !== '' && userInput) {
       setSearchText(userInput);
@@ -57,7 +57,7 @@ export default function App() {
       for (let k = 0; k < res[i].addresses.length; k++) {
         setRequestData((data) => [
           ...data,
-          { key: Math.random().toString(), person: res[i].addresses[k] },
+          { key: Math.random().toString(), person: res[i].addresses[k] }, // Need to add key property because FlatList's key extractor looks for it by default
         ]);
       }
     }
@@ -65,13 +65,13 @@ export default function App() {
     const enteredName = searchText;
 
     setSearchText(undefined);
-    setDisplayName(enteredName);
+    setSearchTextPlaceholder(enteredName);
     setShowLoadingSpinner(false);
-    setRequestDataDisplayed(true);
+    closeModal(true);
   };
 
-  const closeModal = () => {
-    setRequestDataDisplayed(false);
+  const closeModal = (bool) => {
+    setIsRequestDataDisplayed(bool);
   };
 
   return (
@@ -81,27 +81,27 @@ export default function App() {
           style={styles.textInput}
           placeholder="Enter Name Here"
           onChangeText={searchInputHandler}
-          value={requestDataDisplayed ? '' : null}
+          value={isRequestDataDisplayed ? '' : null}
         ></TextInput>
         <TouchableOpacity>
           <Button title="Search" onPress={requestHandler} />
         </TouchableOpacity>
       </View>
       <LoadingSpinner showLoadingSpinner={showLoadingSpinner} />
-      <Modal animationType={'slide'} visible={requestDataDisplayed}>
+      <Modal animationType={'slide'} visible={isRequestDataDisplayed}>
         <View style={styles.goBackWrapper}>
-          <TouchableHighlight onPress={closeModal}>
+          <TouchableHighlight onPress={closeModal.bind(this, false)}>
             <View>
               <Image
                 source={require('./assets/images/left-arrow.png')}
-                style={styles.goBack}
+                style={styles.goBackBtn}
               />
-              <Text>Go Back</Text>
             </View>
           </TouchableHighlight>
-          {requestDataDisplayed ? (
-            <Text style={styles.resultInformation}>
-              {requestData.length} results found for "{displayName}"
+          {isRequestDataDisplayed ? (
+            <Text>
+              <Text style={styles.requestDataLength}>{requestData.length}</Text>
+              results found for "{searchTextPlaceholder}"
             </Text>
           ) : null}
         </View>
@@ -127,22 +127,21 @@ const styles = StyleSheet.create({
   textInput: {
     textAlign: 'center',
   },
-  resultWrapper: {
-    alignItems: 'center',
-  },
   goBackWrapper: {
-    marginLeft: 30,
     marginTop: 45,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  resultInformation: {
-    color: 'navy',
-    marginLeft: 10,
-  },
-  goBack: {
-    width: 45,
-    height: 45,
+  goBackBtn: {
+    width: 35,
+    height: 35,
     marginRight: 10,
+  },
+  requestDataLength: {
+    fontWeight: 'bold',
+  },
+  resultWrapper: {
+    alignItems: 'center',
   },
 });
