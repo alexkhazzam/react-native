@@ -13,13 +13,14 @@ import {
 } from 'react-native';
 
 import LoadingSpinner from './components/LoadingSpinner';
+import Person from './components/Person';
 
 export default function App() {
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
-  const [searchText, setSearchText] = useState(undefined);
-  const [displayName, setDisplayName] = useState(undefined);
-  const [requestData, setRequestData] = useState([]);
   const [requestDataDisplayed, setRequestDataDisplayed] = useState(false);
+  const [displayName, setDisplayName] = useState(undefined);
+  const [searchText, setSearchText] = useState(undefined);
+  const [requestData, setRequestData] = useState([]);
 
   const errorHandler = (e) => {
     setShowLoadingSpinner(false);
@@ -107,23 +108,7 @@ export default function App() {
         <View style={styles.resultWrapper}>
           <FlatList
             data={requestData}
-            renderItem={(data) => (
-              <View style={styles.result}>
-                <Image source={require('./assets/images/doctors-bag.png')} />
-                <Text>address_1: {data.item.person.address_1}</Text>
-                <Text>address_2: {data.item.person.address_2}</Text>
-                <Text>address_purpose: {data.item.person.address_purpose}</Text>
-                <Text>address_type:{data.item.person.address_type}</Text>
-                <Text>city: {data.item.person.city}</Text>
-                <Text>country_code: {data.item.person.country_code}</Text>
-                <Text>fax_number: {data.item.person.fax_number}</Text>
-                <Text>postal_code: {data.item.person.postal_code}</Text>
-                <Text>state: {data.item.person.state}</Text>
-                <Text>
-                  telephone_number: {data.item.person.telephone_number}
-                </Text>
-              </View>
-            )}
+            renderItem={(data) => <Person data={data.item} />}
           />
         </View>
       </Modal>
@@ -144,12 +129,6 @@ const styles = StyleSheet.create({
   },
   resultWrapper: {
     alignItems: 'center',
-  },
-  result: {
-    margin: 15,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: 'grey',
   },
   goBackWrapper: {
     marginLeft: 30,
