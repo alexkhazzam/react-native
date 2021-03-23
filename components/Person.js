@@ -6,9 +6,7 @@ const Person = (props) => {
     <View style={styles.result}>
       <Image source={require('../assets/images/doctors-bag.png')} />
       {Object.entries(props.data.person).map(([key, value]) => (
-        <Text>
-          <Text style={styles.resultItem}>{key}: </Text> {value}
-        </Text>
+        <Text><Text style={styles.resultItem}>{key}: </Text> {value}</Text>
       ))}
     </View>
   );
