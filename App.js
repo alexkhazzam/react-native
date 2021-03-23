@@ -31,7 +31,7 @@ export default function App() {
     setIsRequestDataDisplayed(false);
 
     if (userInput !== '' && userInput) {
-      setSearchText(userInput);
+      setSearchTextHelper(userInput);
     }
   };
 
@@ -64,7 +64,7 @@ export default function App() {
 
     const enteredName = searchText;
 
-    setSearchText(undefined);
+    setSearchTextHelper(undefined);
     setSearchTextPlaceholder(enteredName);
     setShowLoadingSpinner(false);
     closeModal(true);
@@ -72,6 +72,10 @@ export default function App() {
 
   const closeModal = (bool) => {
     setIsRequestDataDisplayed(bool);
+  };
+
+  const setSearchTextHelper = (input) => {
+    setSearchText(input);
   };
 
   return (
@@ -100,7 +104,9 @@ export default function App() {
           </TouchableHighlight>
           {isRequestDataDisplayed ? (
             <Text>
-              <Text style={styles.requestDataLength}>{requestData.length}</Text>
+              <Text style={styles.requestDataLength}>
+                {requestData.length}&nbsp;
+              </Text>
               results found for "{searchTextPlaceholder}"
             </Text>
           ) : null}
