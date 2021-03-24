@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 
 import LoadingSpinner from './components/LoadingSpinner';
-import Person from './components/Person';
 
 export default function App() {
+  const [requestHasError, setRequestHasError] = useState(false);
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
   const [isRequestDataDisplayed, setIsRequestDataDisplayed] = useState(false);
   const [searchTextPlaceholder, setSearchTextPlaceholder] = useState(undefined);
@@ -24,10 +24,11 @@ export default function App() {
 
   const errorHandler = (e) => {
     setShowLoadingSpinner(false);
-    console.log(e);
+    setRequestHasError(true);
   };
 
   const searchInputHandler = (userInput) => {
+    setRequestHasError(false);
     setIsRequestDataDisplayed(false);
 
     if (userInput !== '' && userInput) {
@@ -39,16 +40,20 @@ export default function App() {
     setShowLoadingSpinner(!showLoadingSpinner);
     setRequestData([]);
 
-    const result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${SEARCHTEXT}&city=&lim
-    it=${20}&version=${2.1}`).catch((e) => {
-      return errorHandler(e);
-    });
+    let result;
+    let resultData;
 
-    const resultData = await result.json().catch((e) => {
-      return errorHandler(e);
-    });
+    try {
+      result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${SEARCHTEXT}&city=&lim
+      it=${20}&version=${2.1}`);
+      resultData = await result.json();
+    } catch (e) {
+      errorHandler(e);
+    }
 
-    requestDataHandler(resultData);
+    if (!requestHasError) {
+      requestDataHandler(resultData);
+    }
   };
 
   const requestDataHandler = (data) => {
@@ -57,7 +62,7 @@ export default function App() {
       for (let k = 0; k < res[i].addresses.length; k++) {
         setRequestData((data) => [
           ...data,
-          { key: Math.random().toString(), person: res[i].addresses[k] }, // Need to add key property because FlatList's key extractor looks for it by default
+          { key: Math.random().toString(), person: res[i].addresses[k] }, // FlatList's keyExtractor will look for "key" property by default
         ]);
       }
     }
@@ -91,6 +96,11 @@ export default function App() {
           <Button title="Search" onPress={requestHandler} />
         </TouchableOpacity>
       </View>
+      {requestHasError ? (
+        <Text style={styles.errorMessage}>
+          Oops! An error occurred, please try again later!
+        </Text>
+      ) : null}
       <LoadingSpinner showLoadingSpinner={showLoadingSpinner} />
       <Modal animationType={'slide'} visible={isRequestDataDisplayed}>
         <View style={styles.goBackWrapper}>
@@ -111,13 +121,26 @@ export default function App() {
               {requestData.length === 0
                 ? 'Results Found!'
                 : `Results Found For "${searchTextPlaceholder}"!`}
+              {/* Note that RequestData.length > 20 because we are setting the limit query param to 20 requests */}
             </Text>
           ) : null}
         </View>
         <View style={styles.resultWrapper}>
           <FlatList
             data={requestData}
-            renderItem={(data) => <Person data={data.item} />}
+            keyExtractor={(personObj) => personObj.key}
+            renderItem={(data) => (
+              <View style={styles.result}>
+                <Image source={require('./assets/images/doctors-bag.png')} />
+                {Object.entries(data.item.person).map(([key, value]) => (
+                  <Text>
+                    {/* Wrapping in double text in order to style key
+                    individually */}
+                    <Text style={styles.resultItem}>{key}: </Text> {value}
+                  </Text>
+                ))}
+              </View>
+            )}
           />
         </View>
       </Modal>
@@ -152,5 +175,17 @@ const styles = StyleSheet.create({
   },
   resultWrapper: {
     alignItems: 'center',
+  },
+  errorMessage: {
+    color: 'red',
+  },
+  result: {
+    margin: 15,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: 'grey',
+  },
+  resultItem: {
+    fontWeight: 'bold',
   },
 });
