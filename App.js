@@ -121,7 +121,7 @@ export default function App() {
               {requestData.length === 0
                 ? 'Results Found!'
                 : `Results Found For "${searchTextPlaceholder}"!`}
-              {/* Note that RequestData.length > 20 because we are setting the limit query param to 20 requests */}
+              {/* Note that RequestData.length <= 20 because we are setting the limit query param to 20 requests */}
             </Text>
           ) : null}
         </View>
