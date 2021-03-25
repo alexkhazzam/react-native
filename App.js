@@ -31,25 +31,34 @@ export default function App() {
     setRequestHasError(false);
     setIsRequestDataDisplayed(false);
 
+    userInput = userInput.trim();
+
     if (userInput !== '' && userInput) {
       setSearchTextHelper(userInput);
     }
+  };
+
+  const inputNameHandler = () => {
+    return {
+      firstName: /\s/g.test(SEARCHTEXT) ? SEARCHTEXT.split(' ')[0] : SEARCHTEXT,
+      lastName: /\s/g.test(SEARCHTEXT) ? SEARCHTEXT.split(' ')[1] : '',
+    };
   };
 
   const requestHandler = async () => {
     setShowLoadingSpinner(!showLoadingSpinner);
     setRequestData([]);
 
-    let result;
-    let resultData;
-
-    try {
-      result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${SEARCHTEXT}&city=&lim
-      it=${20}&version=${2.1}`);
-      resultData = await result.json();
-    } catch (e) {
+    const result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${
+      inputNameHandler().firstName
+    }&last_name=${inputNameHandler().lastName}&city=&lim
+      it=${20}&version=${2.1}`).catch((e) => {
       errorHandler(e);
-    }
+    });
+
+    const resultData = await result.json().catch((e) => {
+      errorHandler(e);
+    });
 
     if (!requestHasError) {
       requestDataHandler(resultData);
@@ -62,7 +71,7 @@ export default function App() {
       for (let k = 0; k < res[i].addresses.length; k++) {
         setRequestData((data) => [
           ...data,
-          { key: Math.random().toString(), person: res[i].addresses[k] }, // FlatList's keyExtractor will look for "key" property by default
+          { key: Math.random().toString(), person: res[i].addresses[k] },
         ]);
       }
     }
@@ -121,7 +130,6 @@ export default function App() {
               {requestData.length === 0
                 ? 'Results Found!'
                 : `Results Found For "${searchTextPlaceholder}"!`}
-              {/* Note that RequestData.length <= 20 because we are setting the limit query param to 20 requests */}
             </Text>
           ) : null}
         </View>
@@ -134,8 +142,6 @@ export default function App() {
                 <Image source={require('./assets/images/doctors-bag.png')} />
                 {Object.entries(data.item.person).map(([key, value]) => (
                   <Text>
-                    {/* Wrapping in double text in order to style key
-                    individually */}
                     <Text style={styles.resultItem}>{key}: </Text> {value}
                   </Text>
                 ))}
