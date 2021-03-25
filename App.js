@@ -18,6 +18,7 @@ export default function App() {
   const [requestHasError, setRequestHasError] = useState(false);
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
   const [isRequestDataDisplayed, setIsRequestDataDisplayed] = useState(false);
+  const [showAllPersonInfo, setShowAllPersonInfo] = useState(false);
   const [searchTextPlaceholder, setSearchTextPlaceholder] = useState(undefined);
   const [SEARCHTEXT, SETSEARCHTEXT] = useState(undefined);
   const [requestData, setRequestData] = useState([]);
@@ -45,20 +46,31 @@ export default function App() {
     };
   };
 
-  const requestHandler = async () => {
+  const requestHandler = async (organizationSearched) => {
     setShowLoadingSpinner(!showLoadingSpinner);
     setRequestData([]);
 
-    const result = await fetch(`https://npiregistry.cms.hhs.gov/api/?first_name=${
-      inputNameHandler().firstName
-    }&last_name=${inputNameHandler().lastName}&city=&lim
-      it=${20}&version=${2.1}`).catch((e) => {
+    let url = 'https://npiregistry.cms.hhs.gov/api/';
+
+    if (organizationSearched) {
+      url += `?organization_name=${SEARCHTEXT}&city=&lim
+      it=${20}&version=${2.1}`;
+    } else {
+      url += `?first_name=${inputNameHandler().firstName}&last_name=${
+        inputNameHandler().lastName
+      }&city=&lim
+        it=${20}&version=${2.1}`;
+    }
+    const result = await fetch(url).catch((e) => {
       errorHandler(e);
     });
 
     const resultData = await result.json().catch((e) => {
       errorHandler(e);
     });
+
+    console.log(url);
+    console.log(resultData);
 
     if (!requestHasError) {
       requestDataHandler(resultData);
@@ -69,9 +81,27 @@ export default function App() {
     const res = data.results;
     for (let i = 0; i < res.length; i++) {
       for (let k = 0; k < res[i].addresses.length; k++) {
+        const p = res[i].addresses[k];
+
+        const briefPersonSummary = {
+          ['First Name']: inputNameHandler().firstName,
+          ['Last Name']: inputNameHandler().lastName,
+          address_1: p.address_1,
+          state: p.state,
+          city: p.city,
+        };
+
+        delete p.address_1;
+        delete p.city;
+        delete p.state;
+
         setRequestData((data) => [
           ...data,
-          { key: Math.random().toString(), person: res[i].addresses[k] },
+          {
+            key: Math.random().toString(),
+            personSummary: p,
+            briefPersonSummary: briefPersonSummary,
+          },
         ]);
       }
     }
@@ -92,17 +122,29 @@ export default function App() {
     SETSEARCHTEXT(input);
   };
 
+  const showPersonInfoHandler = (e) => {
+    setShowAllPersonInfo(!showAllPersonInfo);
+    console.log(showAllPersonInfo);
+    e.stopPropgation();
+  };
+
   return (
     <View style={styles.container}>
       <View>
         <TextInput
           style={styles.textInput}
-          placeholder="Enter Name Here"
+          placeholder="Enter Person Or Organiztion Name"
           onChangeText={searchInputHandler}
           value={isRequestDataDisplayed ? '' : null}
         ></TextInput>
         <TouchableOpacity>
-          <Button title="Search" onPress={requestHandler} />
+          <Button title="Search Person" onPress={() => requestHandler(false)} />
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Button
+            title="Search Organization"
+            onPress={() => requestHandler(true)}
+          />
         </TouchableOpacity>
       </View>
       {requestHasError ? (
@@ -140,11 +182,32 @@ export default function App() {
             renderItem={(data) => (
               <View style={styles.result}>
                 <Image source={require('./assets/images/doctors-bag.png')} />
-                {Object.entries(data.item.person).map(([key, value]) => (
-                  <Text>
-                    <Text style={styles.resultItem}>{key}: </Text> {value}
-                  </Text>
+                {Object.entries(data.item.briefPersonSummary).map(
+                  ([key, value]) => (
+                    <View>
+                      <Text>
+                        <Text style={styles.resultItem}>{key}: </Text> {value}
+                      </Text>
+                    </View>
+                  )
+                )}
+                {Object.entries(data.item.personSummary).map(([key, value]) => (
+                  <View
+                    style={
+                      showAllPersonInfo
+                        ? { display: 'flex' }
+                        : { display: 'none' }
+                    }
+                  >
+                    <Text>
+                      <Text style={styles.resultItem}>{key}: </Text> {value}
+                    </Text>
+                  </View>
                 ))}
+                <Button
+                  title={showAllPersonInfo ? 'Show Less' : 'Show More'}
+                  onPress={(e) => showPersonInfoHandler(e)}
+                />
               </View>
             )}
           />
