@@ -167,21 +167,32 @@ export default function App() {
       <View>
         <TextInput
           style={styles.textInput}
-          placeholder="Enter Person Or Organiztion Name"
+          placeholder={
+            organizationWasSearched
+              ? 'Enter Organization Name'
+              : 'Enter Person Name'
+          }
           onChangeText={searchInputHandler}
           value={isRequestDataDisplayed ? '' : null}
         ></TextInput>
         <TouchableOpacity>
-          <Button title="Search Person" onPress={() => requestHandler()} />
+          <Button
+            title={
+              organizationWasSearched ? 'Search Organization' : 'Search Person'
+            }
+            onPress={() => requestHandler()}
+          />
         </TouchableOpacity>
-        <TouchableOpacity>
-          <View>
-            <Switch
-              value={organizationWasSearched}
-              onValueChange={dataSearchedHandler}
-            ></Switch>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.toggleBtnWrapper}>
+          <TouchableOpacity>
+            <View>
+              <Switch
+                value={organizationWasSearched}
+                onValueChange={dataSearchedHandler}
+              ></Switch>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
       {requestHasError ? (
         <Text style={styles.errorMessage}>
@@ -253,44 +264,6 @@ export default function App() {
               </View>
             )}
           />
-
-          {/* {organizationData.length > 0 ? (
-            <FlatList
-              data={organizationData}
-              keyExtractor={(personObj) => personObj.key}
-              renderItem={(data) => (
-                <View style={styles.result}>
-                  <Image source={require('./assets/images/doctors-bag.png')} />
-                  {Object.entries(data.item.briefOrgSummary).map(
-                    ([key, value]) => (
-                      <View>
-                        <Text>
-                          <Text style={styles.resultItem}>{key}: </Text> {value}
-                        </Text>
-                      </View>
-                    )
-                  )}
-                  {Object.entries(data.item.orgSummary).map(([key, value]) => (
-                    <View
-                      style={
-                        showAllPersonInfo
-                          ? { display: 'flex' }
-                          : { display: 'none' }
-                      }
-                    >
-                      <Text>
-                        <Text style={styles.resultItem}>{key}: </Text> {value}
-                      </Text>
-                    </View>
-                  ))}
-                  <Button
-                    title={showAllPersonInfo ? 'Show Less' : 'Show More'}
-                    onPress={(e) => showPersonInfoHandler(e)}
-                  />
-                </View>
-              )}
-            />
-          ) : null} */}
         </View>
       </Modal>
     </View>
@@ -336,5 +309,9 @@ const styles = StyleSheet.create({
   },
   resultItem: {
     fontWeight: 'bold',
+  },
+  toggleBtnWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
