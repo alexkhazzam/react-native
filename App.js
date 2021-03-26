@@ -114,6 +114,7 @@ export default function App() {
         delete org.name;
 
         const briefOrgSummary = {
+          key: Math.random().toString(),
           authorized_official_first_name: org.authorized_official_first_name,
           authorized_official_last_name: org.authorized_official_last_name,
           organization_name: org.organization_name,
@@ -211,15 +212,31 @@ export default function App() {
             </View>
           </TouchableHighlight>
           {isRequestDataDisplayed ? (
-            <Text>
-              <Text style={styles.personData}>
-                {personData.length === 0 ? 'No' : personData.length}
-              </Text>
-              &nbsp;
-              {personData.length === 0
-                ? 'Results Found!'
-                : `Results Found For "${searchTextPlaceholder}"!`}
-            </Text>
+            <View>
+              {organizationWasSearched ? (
+                <Text>
+                  <Text style={styles.personData}>
+                    {organizationData.length === 0
+                      ? 'No'
+                      : organizationData.length}
+                  </Text>
+                  &nbsp;
+                  {organizationData.length === 0
+                    ? 'Results Found!'
+                    : `Results Found For "${searchTextPlaceholder}"!`}
+                </Text>
+              ) : (
+                <Text>
+                  <Text style={styles.personData}>
+                    {personData.length === 0 ? 'No' : personData.length}
+                  </Text>
+                  &nbsp;
+                  {personData.length === 0
+                    ? 'Results Found!'
+                    : `Results Found For "${searchTextPlaceholder}"!`}
+                </Text>
+              )}
+            </View>
           ) : null}
         </View>
         <View style={styles.resultWrapper}>
@@ -234,7 +251,7 @@ export default function App() {
                     ? data.item.briefOrgSummary
                     : data.item.briefPersonSummary
                 ).map(([key, value]) => (
-                  <View>
+                  <View key={value + data.item.key}>
                     <Text>
                       <Text style={styles.resultItem}>{key}: </Text> {value}
                     </Text>
@@ -246,6 +263,7 @@ export default function App() {
                     : data.item.personSummary
                 ).map(([key, value]) => (
                   <View
+                    key={value + data.item.key}
                     style={
                       showAllPersonInfo
                         ? { display: 'flex' }
