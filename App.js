@@ -126,7 +126,7 @@ export default function App() {
         setOrganizationData((d) => [
           ...d,
           {
-            key: Math.random().toString(),
+            key: Math.random().toString,
             orgSummary: org,
             briefOrgSummary: briefOrgSummary,
           },
