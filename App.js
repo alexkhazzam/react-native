@@ -9,6 +9,7 @@ import {
   Text,
   Modal,
   Image,
+  Switch,
   TouchableHighlight,
 } from 'react-native';
 
@@ -17,6 +18,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 export default function App() {
   const [requestHasError, setRequestHasError] = useState(false);
   const [showLoadingSpinner, setShowLoadingSpinner] = useState(false);
+  const [organizationWasSearched, setOrganizationWasSearched] = useState(false);
   const [isRequestDataDisplayed, setIsRequestDataDisplayed] = useState(false);
   const [showAllPersonInfo, setShowAllPersonInfo] = useState(false);
   const [searchTextPlaceholder, setSearchTextPlaceholder] = useState(undefined);
@@ -46,13 +48,14 @@ export default function App() {
     };
   };
 
-  const requestHandler = async (organizationSearched) => {
-    setShowLoadingSpinner(!showLoadingSpinner);
+  const requestHandler = () => {
     setRequestData([]);
+    setShowLoadingSpinner(!showLoadingSpinner);
+    setShowAllPersonInfo(false);
 
     let url = 'https://npiregistry.cms.hhs.gov/api/';
 
-    if (organizationSearched) {
+    if (organizationWasSearched) {
       url += `?organization_name=${SEARCHTEXT}&city=&lim
       it=${20}&version=${2.1}`;
     } else {
@@ -61,51 +64,73 @@ export default function App() {
       }&city=&lim
         it=${20}&version=${2.1}`;
     }
-    const result = await fetch(url).catch((e) => {
-      errorHandler(e);
-    });
 
-    const resultData = await result.json().catch((e) => {
-      errorHandler(e);
-    });
-
-    console.log(url);
-    console.log(resultData);
-
-    if (!requestHasError) {
-      requestDataHandler(resultData);
-    }
+    fetch(url)
+      .then((result) => {
+        result.json().then((resultData) => {
+          requestDataHandler(resultData);
+        });
+      })
+      .catch((e) => {
+        return errorHandler(e);
+      });
   };
 
   const requestDataHandler = (data) => {
-    const res = data.results;
-    for (let i = 0; i < res.length; i++) {
-      for (let k = 0; k < res[i].addresses.length; k++) {
-        const p = res[i].addresses[k];
+    if (organizationWasSearched) {
+      console.log('ORGANIZATION NOT SEARCHED');
+      for (let i = 0; i < data.results.length; i++) {
+        for (let k = 0; k < data.results[i].addresses.length; k++) {
+          const p = data.results[i].addresses[k];
 
-        const briefPersonSummary = {
-          ['First Name']: inputNameHandler().firstName,
-          ['Last Name']: inputNameHandler().lastName,
-          address_1: p.address_1,
-          state: p.state,
-          city: p.city,
+          const briefPersonSummary = {
+            ['First Name']: inputNameHandler().firstName,
+            ['Last Name']: inputNameHandler().lastName,
+            address_1: p.address_1,
+            state: p.state,
+            city: p.city,
+          };
+
+          delete p.address_1;
+          delete p.city;
+          delete p.state;
+
+          setRequestData((data) => [
+            ...data,
+            {
+              key: Math.random().toString(),
+              personSummary: p,
+              briefPersonSummary: briefPersonSummary,
+            },
+          ]);
+        }
+      }
+    } else {
+      console.log('ORGANIZATION SEARCHED');
+      for (const obj in data.results) {
+        const org = data.results[obj].basic;
+
+        const briefOrgSummary = {
+          authorized_official_first_name: org.authorized_official_first_name,
+          authorized_official_last_name: org.authorized_official_last_name,
+          organization_name: org.organization_name,
         };
 
-        delete p.address_1;
-        delete p.city;
-        delete p.state;
+        delete org.authorized_official_first_name;
+        delete org.authorized_official_last_name;
+        delete org.organization_name;
 
         setRequestData((data) => [
           ...data,
           {
             key: Math.random().toString(),
-            personSummary: p,
-            briefPersonSummary: briefPersonSummary,
+            orgSummary: org,
+            briefOrgSummary: briefOrgSummary,
           },
         ]);
       }
     }
-
+    console.log(requestData);
     const enteredName = SEARCHTEXT;
 
     setSearchTextHelper(undefined);
@@ -115,6 +140,7 @@ export default function App() {
   };
 
   const closeModal = (bool) => {
+    setOrganizationWasSearched(false);
     setIsRequestDataDisplayed(bool);
   };
 
@@ -124,8 +150,10 @@ export default function App() {
 
   const showPersonInfoHandler = (e) => {
     setShowAllPersonInfo(!showAllPersonInfo);
-    console.log(showAllPersonInfo);
-    e.stopPropgation();
+  };
+
+  const dataSearchedHandler = (data) => {
+    setOrganizationWasSearched(!organizationWasSearched);
   };
 
   return (
@@ -138,13 +166,15 @@ export default function App() {
           value={isRequestDataDisplayed ? '' : null}
         ></TextInput>
         <TouchableOpacity>
-          <Button title="Search Person" onPress={() => requestHandler(false)} />
+          <Button title="Search Person" onPress={() => requestHandler()} />
         </TouchableOpacity>
         <TouchableOpacity>
-          <Button
-            title="Search Organization"
-            onPress={() => requestHandler(true)}
-          />
+          <View>
+            <Switch
+              value={organizationWasSearched}
+              onValueChange={dataSearchedHandler}
+            ></Switch>
+          </View>
         </TouchableOpacity>
       </View>
       {requestHasError ? (
@@ -176,7 +206,7 @@ export default function App() {
           ) : null}
         </View>
         <View style={styles.resultWrapper}>
-          <FlatList
+          {/* <FlatList
             data={requestData}
             keyExtractor={(personObj) => personObj.key}
             renderItem={(data) => (
@@ -210,7 +240,7 @@ export default function App() {
                 />
               </View>
             )}
-          />
+          /> */}
         </View>
       </Modal>
     </View>
