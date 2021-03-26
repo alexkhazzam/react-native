@@ -107,7 +107,6 @@ export default function App() {
           ]);
         }
       }
-      console.log(personData);
     } else {
       for (const obj in data.results) {
         const org = data.results[obj].basic;
@@ -144,7 +143,6 @@ export default function App() {
   };
 
   const closeModal = (bool) => {
-    setOrganizationWasSearched(false);
     setIsRequestDataDisplayed(bool);
   };
 
@@ -214,47 +212,49 @@ export default function App() {
           ) : null}
         </View>
         <View style={styles.resultWrapper}>
-          {personData.length > 0 ? (
-            <FlatList
-              data={personData}
-              keyExtractor={(personObj) => personObj.key}
-              renderItem={(data) => (
-                <View style={styles.result}>
-                  <Image source={require('./assets/images/doctors-bag.png')} />
-                  {Object.entries(data.item.briefPersonSummary).map(
-                    ([key, value]) => (
-                      <View>
-                        <Text>
-                          <Text style={styles.resultItem}>{key}: </Text> {value}
-                        </Text>
-                      </View>
-                    )
-                  )}
-                  {Object.entries(data.item.personSummary).map(
-                    ([key, value]) => (
-                      <View
-                        style={
-                          showAllPersonInfo
-                            ? { display: 'flex' }
-                            : { display: 'none' }
-                        }
-                      >
-                        <Text>
-                          <Text style={styles.resultItem}>{key}: </Text> {value}
-                        </Text>
-                      </View>
-                    )
-                  )}
-                  <Button
-                    title={showAllPersonInfo ? 'Show Less' : 'Show More'}
-                    onPress={(e) => showPersonInfoHandler(e)}
-                  />
-                </View>
-              )}
-            />
-          ) : null}
+          <FlatList
+            data={organizationWasSearched ? organizationData : personData}
+            keyExtractor={(personObj) => personObj.key}
+            renderItem={(data) => (
+              <View style={styles.result}>
+                <Image source={require('./assets/images/doctors-bag.png')} />
+                {Object.entries(
+                  organizationWasSearched
+                    ? data.item.briefOrgSummary
+                    : data.item.briefPersonSummary
+                ).map(([key, value]) => (
+                  <View>
+                    <Text>
+                      <Text style={styles.resultItem}>{key}: </Text> {value}
+                    </Text>
+                  </View>
+                ))}
+                {Object.entries(
+                  organizationWasSearched
+                    ? data.item.orgSummary
+                    : data.item.personSummary
+                ).map(([key, value]) => (
+                  <View
+                    style={
+                      showAllPersonInfo
+                        ? { display: 'flex' }
+                        : { display: 'none' }
+                    }
+                  >
+                    <Text>
+                      <Text style={styles.resultItem}>{key}: </Text> {value}
+                    </Text>
+                  </View>
+                ))}
+                <Button
+                  title={showAllPersonInfo ? 'Show Less' : 'Show More'}
+                  onPress={(e) => showPersonInfoHandler(e)}
+                />
+              </View>
+            )}
+          />
 
-          {organizationData.length > 0 ? (
+          {/* {organizationData.length > 0 ? (
             <FlatList
               data={organizationData}
               keyExtractor={(personObj) => personObj.key}
@@ -290,7 +290,7 @@ export default function App() {
                 </View>
               )}
             />
-          ) : null}
+          ) : null} */}
         </View>
       </Modal>
     </View>
