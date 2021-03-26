@@ -23,7 +23,8 @@ export default function App() {
   const [showAllPersonInfo, setShowAllPersonInfo] = useState(false);
   const [searchTextPlaceholder, setSearchTextPlaceholder] = useState(undefined);
   const [SEARCHTEXT, SETSEARCHTEXT] = useState(undefined);
-  const [requestData, setRequestData] = useState([]);
+  const [organizationData, setOrganizationData] = useState([]);
+  const [personData, setPersonData] = useState([]);
 
   const errorHandler = (e) => {
     setShowLoadingSpinner(false);
@@ -49,7 +50,8 @@ export default function App() {
   };
 
   const requestHandler = () => {
-    setRequestData([]);
+    setPersonData([]);
+    setOrganizationData([]);
     setShowLoadingSpinner(!showLoadingSpinner);
     setShowAllPersonInfo(false);
 
@@ -76,9 +78,9 @@ export default function App() {
       });
   };
 
-  const requestDataHandler = (data) => {
-    if (organizationWasSearched) {
-      console.log('ORGANIZATION NOT SEARCHED');
+  const requestDataHandler = (responseData) => {
+    const data = { ...responseData };
+    if (organizationWasSearched === false) {
       for (let i = 0; i < data.results.length; i++) {
         for (let k = 0; k < data.results[i].addresses.length; k++) {
           const p = data.results[i].addresses[k];
@@ -95,8 +97,8 @@ export default function App() {
           delete p.city;
           delete p.state;
 
-          setRequestData((data) => [
-            ...data,
+          setPersonData((d) => [
+            ...d,
             {
               key: Math.random().toString(),
               personSummary: p,
@@ -105,10 +107,12 @@ export default function App() {
           ]);
         }
       }
+      console.log(personData);
     } else {
-      console.log('ORGANIZATION SEARCHED');
       for (const obj in data.results) {
         const org = data.results[obj].basic;
+
+        delete org.name;
 
         const briefOrgSummary = {
           authorized_official_first_name: org.authorized_official_first_name,
@@ -120,8 +124,8 @@ export default function App() {
         delete org.authorized_official_last_name;
         delete org.organization_name;
 
-        setRequestData((data) => [
-          ...data,
+        setOrganizationData((d) => [
+          ...d,
           {
             key: Math.random().toString(),
             orgSummary: org,
@@ -130,7 +134,7 @@ export default function App() {
         ]);
       }
     }
-    console.log(requestData);
+
     const enteredName = SEARCHTEXT;
 
     setSearchTextHelper(undefined);
@@ -153,7 +157,11 @@ export default function App() {
   };
 
   const dataSearchedHandler = (data) => {
-    setOrganizationWasSearched(!organizationWasSearched);
+    if (data) {
+      setOrganizationWasSearched(true);
+    } else {
+      setOrganizationWasSearched(false);
+    }
   };
 
   return (
@@ -195,52 +203,94 @@ export default function App() {
           </TouchableHighlight>
           {isRequestDataDisplayed ? (
             <Text>
-              <Text style={styles.requestDataLength}>
-                {requestData.length === 0 ? 'No' : requestData.length}
+              <Text style={styles.personData}>
+                {personData.length === 0 ? 'No' : personData.length}
               </Text>
               &nbsp;
-              {requestData.length === 0
+              {personData.length === 0
                 ? 'Results Found!'
                 : `Results Found For "${searchTextPlaceholder}"!`}
             </Text>
           ) : null}
         </View>
         <View style={styles.resultWrapper}>
-          {/* <FlatList
-            data={requestData}
-            keyExtractor={(personObj) => personObj.key}
-            renderItem={(data) => (
-              <View style={styles.result}>
-                <Image source={require('./assets/images/doctors-bag.png')} />
-                {Object.entries(data.item.briefPersonSummary).map(
-                  ([key, value]) => (
-                    <View>
+          {personData.length > 0 ? (
+            <FlatList
+              data={personData}
+              keyExtractor={(personObj) => personObj.key}
+              renderItem={(data) => (
+                <View style={styles.result}>
+                  <Image source={require('./assets/images/doctors-bag.png')} />
+                  {Object.entries(data.item.briefPersonSummary).map(
+                    ([key, value]) => (
+                      <View>
+                        <Text>
+                          <Text style={styles.resultItem}>{key}: </Text> {value}
+                        </Text>
+                      </View>
+                    )
+                  )}
+                  {Object.entries(data.item.personSummary).map(
+                    ([key, value]) => (
+                      <View
+                        style={
+                          showAllPersonInfo
+                            ? { display: 'flex' }
+                            : { display: 'none' }
+                        }
+                      >
+                        <Text>
+                          <Text style={styles.resultItem}>{key}: </Text> {value}
+                        </Text>
+                      </View>
+                    )
+                  )}
+                  <Button
+                    title={showAllPersonInfo ? 'Show Less' : 'Show More'}
+                    onPress={(e) => showPersonInfoHandler(e)}
+                  />
+                </View>
+              )}
+            />
+          ) : null}
+
+          {organizationData.length > 0 ? (
+            <FlatList
+              data={organizationData}
+              keyExtractor={(personObj) => personObj.key}
+              renderItem={(data) => (
+                <View style={styles.result}>
+                  <Image source={require('./assets/images/doctors-bag.png')} />
+                  {Object.entries(data.item.briefOrgSummary).map(
+                    ([key, value]) => (
+                      <View>
+                        <Text>
+                          <Text style={styles.resultItem}>{key}: </Text> {value}
+                        </Text>
+                      </View>
+                    )
+                  )}
+                  {Object.entries(data.item.orgSummary).map(([key, value]) => (
+                    <View
+                      style={
+                        showAllPersonInfo
+                          ? { display: 'flex' }
+                          : { display: 'none' }
+                      }
+                    >
                       <Text>
                         <Text style={styles.resultItem}>{key}: </Text> {value}
                       </Text>
                     </View>
-                  )
-                )}
-                {Object.entries(data.item.personSummary).map(([key, value]) => (
-                  <View
-                    style={
-                      showAllPersonInfo
-                        ? { display: 'flex' }
-                        : { display: 'none' }
-                    }
-                  >
-                    <Text>
-                      <Text style={styles.resultItem}>{key}: </Text> {value}
-                    </Text>
-                  </View>
-                ))}
-                <Button
-                  title={showAllPersonInfo ? 'Show Less' : 'Show More'}
-                  onPress={(e) => showPersonInfoHandler(e)}
-                />
-              </View>
-            )}
-          /> */}
+                  ))}
+                  <Button
+                    title={showAllPersonInfo ? 'Show Less' : 'Show More'}
+                    onPress={(e) => showPersonInfoHandler(e)}
+                  />
+                </View>
+              )}
+            />
+          ) : null}
         </View>
       </Modal>
     </View>
